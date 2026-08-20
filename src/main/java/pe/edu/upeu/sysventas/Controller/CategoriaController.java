@@ -1,10 +1,14 @@
 package pe.edu.upeu.sysventas.Controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import pe.edu.upeu.sysventas.Model.Categoria;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import pe.edu.upeu.sysventas.Dto.CategoriaRequestDTO;
+import pe.edu.upeu.sysventas.Dto.CategoriaResponseDTO;
 import pe.edu.upeu.sysventas.Service.Service.CategoriaService;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/categorias")
@@ -14,8 +18,34 @@ public class CategoriaController {
     public CategoriaController(CategoriaService categoriaService) {
         this.categoriaService = categoriaService;
     }
+
+
     @GetMapping
-    public Iterable<Categoria> listar(){
-        return categoriaService.readAll();
+    public ResponseEntity<Iterable<CategoriaResponseDTO>> findAll() {
+        return ResponseEntity.ok(categoriaService.readAll());
+    }
+
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Optional<CategoriaResponseDTO>> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(categoriaService.read(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<CategoriaResponseDTO> create(@Valid @RequestBody CategoriaRequestDTO requestDTO) {
+        CategoriaResponseDTO response = categoriaService.create(requestDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoriaResponseDTO> update(@PathVariable Long id, @Valid @RequestBody CategoriaRequestDTO requestDTO) {
+        CategoriaResponseDTO response = categoriaService.create(requestDTO);
+        return ResponseEntity.ok(categoriaService.update(id, requestDTO));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<CategoriaResponseDTO> update(@PathVariable Long id) {
+        categoriaService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
