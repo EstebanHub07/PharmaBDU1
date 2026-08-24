@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Categoria {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "categoria_seq")
+    @SequenceGenerator(name = "categoria_seq", sequenceName = "categorias_seq", allocationSize = 1)
     private Long id;
 
     @Column(nullable = false, length = 50)
@@ -30,16 +31,18 @@ public class Categoria {
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
-    @Column(name = "fecha_modificación")
+    @Column(name = "fecha_modificacion")
     private LocalDateTime fechaModificacion;
 
     @PrePersist
     public void prePersist() {
         this.fechaCreacion = LocalDateTime.now();
-        if (fechaCreacion == null) {
-            estado = false;
+        if (estado == null) {
+            estado = true;
         }
-    }@PreUpdate
+    }
+
+    @PreUpdate
     public void preUpdate() {
         this.fechaModificacion = LocalDateTime.now();
     }

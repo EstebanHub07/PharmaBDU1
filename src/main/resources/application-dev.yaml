@@ -3,7 +3,7 @@ server:
 spring:
   datasource:
     url: jdbc:oracle:thin:@//localhost:1522/FREEPDB1
-    username: PHARMADB
+    username: pharmabd
     password: 1234567
   jpa:
     database-platform: org.hibernate.dialect.OracleDialect
@@ -20,4 +20,3 @@ springdoc:
 
   api-docs:
     enabled: true
-

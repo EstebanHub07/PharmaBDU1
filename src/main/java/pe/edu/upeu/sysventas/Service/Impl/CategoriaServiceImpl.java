@@ -28,9 +28,9 @@ public class CategoriaServiceImpl implements CategoriaService {
     @Transactional
     @Override
     public CategoriaResponseDTO create(CategoriaRequestDTO t) {
-        String nombre = t.getNombre().trim();
+        String nombre = validarNombre(t.getNombre());
         if (categoriaRepository.existsByNombreIgnoreCase(nombre)) {
-            throw new ReglaNegocioException("El nombre existe en el sistema"+ nombre);
+            throw new ReglaNegocioException("Ya existe una categoria con el nombre: " + nombre);
         }
         Categoria categoria = new Categoria();
         categoria.setNombre(nombre);
@@ -43,11 +43,15 @@ public class CategoriaServiceImpl implements CategoriaService {
     @Transactional
     @Override
     public CategoriaResponseDTO update(Long aLong, CategoriaRequestDTO t) {
+        String nombre = validarNombre(t.getNombre());
         Categoria categoria = categoriaRepository.findById(aLong).orElseThrow(()->new RecursoNoEncontradoException(
                         "Categoria no encontrada con el id: "+aLong
                 )
         );
-        categoria.setNombre(t.getNombre());
+        if (categoriaRepository.existsByNombreIgnoreCaseAndIdNot(nombre, aLong)) {
+            throw new ReglaNegocioException("Ya existe otra categoria con el nombre: " + nombre);
+        }
+        categoria.setNombre(nombre);
         categoria.setDescripcion(t.getDescripcion());
         categoria.setEstado(t.getEstado());
         Categoria catActualizada = categoriaRepository.save(categoria);
@@ -68,7 +72,7 @@ public class CategoriaServiceImpl implements CategoriaService {
                         "Categoria no encontrada con el id: "+aLong
                 )
         );
-
+        categoriaRepository.delete(categoria);
     }
 
     @Override
@@ -86,5 +90,12 @@ public class CategoriaServiceImpl implements CategoriaService {
                 categoria.getFechaCreacion(),
                 categoria.getFechaModificacion()
         );
+    }
+
+    private String validarNombre(String nombre) {
+        if (nombre == null || nombre.trim().isEmpty()) {
+            throw new ReglaNegocioException("El nombre de la categoria no puede estar vacio");
+        }
+        return nombre.trim();
     }
 }
