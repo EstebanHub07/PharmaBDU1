@@ -16,8 +16,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Producto {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "categoria_seq")
-    @SequenceGenerator(name = "categoria_seq", sequenceName = "categorias_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "producto_seq")
+    @SequenceGenerator(name = "producto_seq", sequenceName = "productos_seq", allocationSize = 1)
     private Long id;
 
     @Column(nullable = false, length = 50)
@@ -51,5 +51,9 @@ public class Producto {
         if (estado == null) {
             estado = true;
         }
+    }
+    @PreUpdate
+    public void preUpdate() {
+        this.fechaModificacion = LocalDateTime.now();
     }
 }
