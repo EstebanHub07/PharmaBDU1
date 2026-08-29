@@ -16,7 +16,7 @@ import pe.edu.upeu.sysventas.Service.Service.CategoriaService;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/categorias")
+@RequestMapping("v1/api/categorias")
 public class CategoriaController {
     private final CategoriaService categoriaService;
 
