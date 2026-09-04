@@ -7,57 +7,95 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import pe.edu.upeu.sysventas.exception.dto.ErrorResponseDTO;
+
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /*
+     * Recurso no encontrado
+     * HTTP 404
+     */
     @ExceptionHandler(RecursoNoEncontradoException.class)
-    public ResponseEntity<ErrorResponse> manejarRecursoNoEncontrado(
-            RecursoNoEncontradoException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponseDTO> handleNotFound(
+            RecursoNoEncontradoException ex,
+            HttpServletRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 LocalDateTime.now(),
                 HttpStatus.NOT_FOUND.value(),
-                "Recurso No Encontrado",
+                "Not Found",
                 ex.getMessage(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> manejarErrorValidacion(
-            MethodArgumentNotValidException ex, HttpServletRequest request) {
-
-        Map<String, String> errores = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errores.put(error.getField(), error.getDefaultMessage())
+                request.getRequestURI(),
+                null
         );
 
-        Map<String, Object> respuesta = new HashMap<>();
-        respuesta.put("fechaHora", LocalDateTime.now());
-        respuesta.put("codigoEstado", HttpStatus.BAD_REQUEST.value());
-        respuesta.put("error", "Datos Inválidos");
-        respuesta.put("errores", errores);
-        respuesta.put("ruta", request.getRequestURI());
-
-        return new ResponseEntity<>(respuesta, HttpStatus.BAD_REQUEST);
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(error);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> manejarErrorGlobal(
-            Exception ex, HttpServletRequest request) {
 
-        ErrorResponse error = new ErrorResponse(
+    /*
+     * Regla de negocio
+     * HTTP 409
+     */
+    @ExceptionHandler(ReglaNegocioException.class)
+    public ResponseEntity<ErrorResponseDTO> handleBusinessRule(
+            ReglaNegocioException ex,
+            HttpServletRequest request) {
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
                 LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Error Interno del Servidor",
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
                 ex.getMessage(),
-                request.getRequestURI()
+                request.getRequestURI(),
+                null
         );
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(error);
+    }
+
+
+    /*
+     * Errores de @Valid
+     * HTTP 400
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponseDTO> handleValidation(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request) {
+
+        Map<String, String> validationErrors =
+                new LinkedHashMap<>();
+
+        ex.getBindingResult()
+                .getFieldErrors()
+                .forEach(error ->
+                        validationErrors.put(
+                                error.getField(),
+                                error.getDefaultMessage()
+                        )
+                );
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                "Existen errores de validación",
+                request.getRequestURI(),
+                validationErrors
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(error);
     }
 }
