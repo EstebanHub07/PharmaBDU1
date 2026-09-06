@@ -51,4 +51,12 @@ public class VentaController {
                 ventaService.listar()
         );
     }
+    @PatchMapping("/{id}/anular")               // bloque nuevo
+    public ResponseEntity<VentaResponseDTO> anular(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                ventaService.anular(id)
+        );
+    }
 }
