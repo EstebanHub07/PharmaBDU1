@@ -17,4 +17,5 @@ public class DetalleVentaResponseDTO {
     private Integer cantidad;
     private BigDecimal precio;
     private BigDecimal subtotal;
+
 }
