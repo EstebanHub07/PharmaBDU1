@@ -32,7 +32,7 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
             Sort sort);
 
     @Query("""
-            select new pe.edu.upeu.PharmaBackend.dto.reporte.VentaPorCategoriaDTO(
+            select new pe.edu.upeu.sysventas.dto.report.VentaPorCategoriaDTO(
                        cat.id,
                        cat.nombre,
                        sum(d.cantidad),
@@ -41,7 +41,7 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
             join d.venta v
             join d.producto p
             join p.categoria cat
-            where v.estado = pe.edu.upeu.PharmaBackend.enums.EstadoVenta.REGISTRADA
+            where v.estado = pe.edu.upeu.sysventas.enums.EstadoVenta.REGISTRADA
               and (:desde is null or v.fecha >= :desde)
               and (:hasta is null or v.fecha <= :hasta)
             group by cat.id, cat.nombre
@@ -52,7 +52,7 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
             @Param("hasta") LocalDateTime hasta);
 
     @Query("""
-            select new pe.edu.upeu.PharmaBackend.dto.reporte.ProductoMasVendidoDTO(
+            select new pe.edu.upeu.sysventas.dto.report.ProductoMasVendidoDTO(
                        p.id,
                        p.nombre,
                        cat.nombre,
@@ -62,7 +62,7 @@ public interface VentaRepository extends JpaRepository<Venta, Long> {
             join d.venta v
             join d.producto p
             join p.categoria cat
-            where v.estado = pe.edu.upeu.PharmaBackend.enums.EstadoVenta.REGISTRADA
+            where v.estado = pe.edu.upeu.sysventas.enums.EstadoVenta.REGISTRADA
               and (:desde is null or v.fecha >= :desde)
               and (:hasta is null or v.fecha <= :hasta)
             group by p.id, p.nombre, cat.nombre
