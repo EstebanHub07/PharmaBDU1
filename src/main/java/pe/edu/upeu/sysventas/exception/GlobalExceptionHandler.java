@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import pe.edu.upeu.sysventas.exception.dto.ErrorResponseDTO;
 
@@ -92,6 +93,26 @@ public class GlobalExceptionHandler {
                 "Existen errores de validación",
                 request.getRequestURI(),
                 validationErrors
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(error);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDTO> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex,
+            HttpServletRequest request) {
+
+        ErrorResponseDTO error = new ErrorResponseDTO(
+                LocalDateTime.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                "El valor '" + ex.getValue() + "' no es válido para el parámetro '"
+                        + ex.getName() + "'",
+                request.getRequestURI(),
+                null
         );
 
         return ResponseEntity

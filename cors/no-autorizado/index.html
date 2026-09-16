@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <title>CORS no autorizado</title>
+</head>
+<body>
+<h1>Origen no autorizado: puerto 5500</h1>
+<pre id="resultado">Consultando...</pre>
+<script>
+    fetch("http://localhost:8080/api/v1/reportes/ventas-por-categoria")
+        .then(async response => {
+            const data = await response.json();
+            console.log("Respuesta:", response.status, data);
+            resultado.textContent = JSON.stringify(data, null, 2);
+        })
+        .catch(error => {
+            console.error("Error CORS:", error);
+            resultado.textContent = error;
+        });
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+@baseUrl = http://localhost:8080
+@clienteId = 47
+
+### 1. Filtro por cliente - esperado: 200
+GET {{baseUrl}}/api/v1/ventas/buscar?clienteId={{clienteId}}
+
+### 2. Filtro por estado - esperado: 200 y dos ventas anuladas
+GET {{baseUrl}}/api/v1/ventas/buscar?estado=ANULADA
+
+### 3. Filtro desde una fecha - esperado: 200
+GET {{baseUrl}}/api/v1/ventas/buscar?desde=2026-09-01
+
+### 4. Filtro hasta una fecha - esperado: 200
+GET {{baseUrl}}/api/v1/ventas/buscar?hasta=2026-08-31
+
+### 5. Combinacion cliente y estado - esperado: 200
+GET {{baseUrl}}/api/v1/ventas/buscar?clienteId={{clienteId}}&estado=REGISTRADA
+
+### 6. Combinacion estado y rango de fechas - esperado: 200
+GET {{baseUrl}}/api/v1/ventas/buscar?estado=REGISTRADA&desde=2026-08-01&hasta=2026-09-30
+
+### 7. Ordenar por fecha ascendente - esperado: 200
+GET {{baseUrl}}/api/v1/ventas/buscar?ordenarPor=fecha&direccion=asc
+
+### 8. Ordenar por fecha descendente - esperado: 200
+GET {{baseUrl}}/api/v1/ventas/buscar?ordenarPor=fecha&direccion=desc
+
+### 9. Ordenar por total ascendente - esperado: 200
+GET {{baseUrl}}/api/v1/ventas/buscar?ordenarPor=total&direccion=asc
+
+### 10. Ordenar por total descendente - esperado: 200
+GET {{baseUrl}}/api/v1/ventas/buscar?ordenarPor=total&direccion=desc
+
+### 11. Caso sin resultados - esperado: 200 y []
+GET {{baseUrl}}/api/v1/ventas/buscar?desde=2030-01-01&hasta=2030-12-31
+
+### 12. Ordenamiento no permitido - esperado: 409
+GET {{baseUrl}}/api/v1/ventas/buscar?ordenarPor=cliente.dni
+
+### 13. Fecha con formato incorrecto - esperado: 400
+GET {{baseUrl}}/api/v1/ventas/buscar?desde=01-09-2026
+
+### 14. Reporte de ventas por categoria - esperado: 200
+GET {{baseUrl}}/api/v1/reportes/ventas-por-categoria?desde=2026-08-01&hasta=2026-09-30
+
+### 15. Reporte de productos mas vendidos - esperado: 200
+GET {{baseUrl}}/api/v1/reportes/productos-mas-vendidos?desde=2026-08-01&hasta=2026-09-30
