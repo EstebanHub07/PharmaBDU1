@@ -14,7 +14,7 @@ import pe.edu.upeu.sysventas.exception.RecursoNoEncontradoException;
 import pe.edu.upeu.sysventas.service.service.ProductoService;
 
 @RestController
-@RequestMapping("v1/api/productos")
+@RequestMapping("/api/v1/productos")
 public class ProductoController {
     private final ProductoService productoService;
 

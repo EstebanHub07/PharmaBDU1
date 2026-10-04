@@ -1,4 +1,4 @@
-package pe.edu.epeu.sysventas.controller;
+package pe.edu.upeu.sysventas.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -9,7 +9,7 @@ import pe.edu.upeu.sysventas.dto.CategoriaResponseDTO;
 import pe.edu.upeu.sysventas.service.service.CategoriaService;
 
 @RestController
-@RequestMapping("/api/categorias")
+@RequestMapping("/api/v1/categorias")
 public class CategoriaController {
     private final CategoriaService categoriaService;
 
