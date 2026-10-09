@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import pe.edu.upeu.sysventas.dto.ProductoRequestDTO;
 import pe.edu.upeu.sysventas.dto.ProductoResponseDTO;
 import pe.edu.upeu.sysventas.exception.RecursoNoEncontradoException;
@@ -104,6 +106,13 @@ public class ProductoServiceImpl implements ProductoService {
                 .map(this::convertirResponse)
                 .toList();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProductoResponseDTO> readPage(Pageable pageable) {
+        return productoRepository.findAll(pageable).map(this::convertirResponse);
+    }
+
     private ProductoResponseDTO convertirResponse(Producto producto){
         return new ProductoResponseDTO(
                 producto.getId(),
