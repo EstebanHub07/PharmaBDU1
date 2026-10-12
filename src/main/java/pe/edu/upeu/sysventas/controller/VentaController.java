@@ -5,6 +5,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+import pe.edu.upeu.sysventas.dto.PaginaResponseDTO;
 import pe.edu.upeu.sysventas.dto.VentaRequestDTO;
 import pe.edu.upeu.sysventas.dto.VentaResponseDTO;
 import pe.edu.upeu.sysventas.enums.EstadoVenta;
@@ -62,7 +64,7 @@ public class VentaController {
      * filtran. Sin coincidencias responde 200 con arreglo vacío.
      */
     @GetMapping("/buscar")
-    public ResponseEntity<List<VentaResponseDTO>> buscar(
+    public ResponseEntity<PaginaResponseDTO<VentaResponseDTO>> buscar(
 
             @RequestParam(required = false)
             Long clienteId,
@@ -82,17 +84,38 @@ public class VentaController {
             String ordenarPor,
 
             @RequestParam(required = false, defaultValue = "desc")
-            String direccion) {
+            String direccion,
 
-        return ResponseEntity.ok(
-                ventaService.buscarVentas(
-                        clienteId,
-                        estado,
-                        desde,
-                        hasta,
-                        ordenarPor,
-                        direccion
-                )
+            @RequestParam(defaultValue = "0")
+            int pagina,
+
+            @RequestParam(defaultValue = "10")
+            int tamanio) {
+
+        if (pagina < 0 || tamanio < 1 || tamanio > 100) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Paginación inválida");
+        }
+
+        List<VentaResponseDTO> ventas = ventaService.buscarVentas(
+                clienteId,
+                estado,
+                desde,
+                hasta,
+                ordenarPor,
+                direccion
         );
+        int inicio = Math.min(pagina * tamanio, ventas.size());
+        int fin = Math.min(inicio + tamanio, ventas.size());
+        int totalPaginas = (int) Math.ceil((double) ventas.size() / tamanio);
+
+        // shortcut: pagina después de filtrar en memoria; mover a Pageable del repositorio si crece el volumen.
+        return ResponseEntity.ok(new PaginaResponseDTO<>(
+                ventas.subList(inicio, fin),
+                pagina,
+                tamanio,
+                ventas.size(),
+                totalPaginas,
+                fin >= ventas.size()
+        ));
     }
 }
