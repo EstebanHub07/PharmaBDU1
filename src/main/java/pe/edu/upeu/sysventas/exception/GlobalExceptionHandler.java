@@ -2,6 +2,8 @@ package pe.edu.upeu.sysventas.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,6 +18,27 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAuthentication(
+            AuthenticationException ex, HttpServletRequest request) {
+        return respuestaSeguridad(HttpStatus.UNAUTHORIZED, "Unauthorized",
+                "Usuario o contraseña incorrectos", request);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAccessDenied(
+            AccessDeniedException ex, HttpServletRequest request) {
+        return respuestaSeguridad(HttpStatus.FORBIDDEN, "Forbidden",
+                "No tiene permisos para realizar esta acción", request);
+    }
+
+    private ResponseEntity<ErrorResponseDTO> respuestaSeguridad(
+            HttpStatus estado, String error, String mensaje, HttpServletRequest request) {
+        return ResponseEntity.status(estado).body(new ErrorResponseDTO(
+                LocalDateTime.now(), estado.value(), error, mensaje,
+                request.getRequestURI(), null));
+    }
 
     /*
      * Recurso no encontrado
