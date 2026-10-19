@@ -9,6 +9,8 @@ import pe.edu.upeu.sysventas.dto.auth.EmpleadoResponseDTO;
 import pe.edu.upeu.sysventas.dto.auth.RolResponseDTO;
 import pe.edu.upeu.sysventas.dto.auth.UsuarioRequestDTO;
 import pe.edu.upeu.sysventas.dto.auth.UsuarioResponseDTO;
+import pe.edu.upeu.sysventas.dto.auth.AsignarRolesRequestDTO;
+import pe.edu.upeu.sysventas.dto.auth.CambiarEstadoRequestDTO;
 import pe.edu.upeu.sysventas.model.Empleado;
 import pe.edu.upeu.sysventas.model.Rol;
 import pe.edu.upeu.sysventas.model.Usuario;
@@ -136,5 +138,55 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .stream()
                 .map(usuarioMapper::toRolResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public UsuarioResponseDTO asignarRoles(
+            Long usuarioId, AsignarRolesRequestDTO request, String usernameActual) {
+        Usuario usuario = buscarUsuario(usuarioId);
+        List<Rol> roles = obtenerRoles(request.getRolIds());
+
+        boolean seQuitaAdmin = usuario.getUsername().equalsIgnoreCase(usernameActual)
+                && usuario.getRoles().stream().anyMatch(rol -> "ADMIN".equals(rol.getNombre()))
+                && roles.stream().noneMatch(rol -> "ADMIN".equals(rol.getNombre()));
+        if (seQuitaAdmin) {
+            throw new ReglaNegocioException("Un administrador no puede quitarse a sí mismo el rol ADMIN");
+        }
+
+        usuario.setRoles(new HashSet<>(roles));
+        log.info("Roles actualizados para usuario={}", usuario.getUsername());
+        return usuarioMapper.toUsuarioResponse(usuario);
+    }
+
+    @Override
+    @Transactional
+    public UsuarioResponseDTO cambiarEstado(
+            Long usuarioId, CambiarEstadoRequestDTO request, String usernameActual) {
+        Usuario usuario = buscarUsuario(usuarioId);
+        if (!request.getEstado() && usuario.getUsername().equalsIgnoreCase(usernameActual)) {
+            throw new ReglaNegocioException("Un administrador no puede desactivarse a sí mismo");
+        }
+
+        usuario.setEstado(request.getEstado());
+        log.info("Estado actualizado para usuario={} estado={}", usuario.getUsername(), request.getEstado());
+        return usuarioMapper.toUsuarioResponse(usuario);
+    }
+
+    private Usuario buscarUsuario(Long usuarioId) {
+        return usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Usuario no encontrado con id: " + usuarioId));
+    }
+
+    private List<Rol> obtenerRoles(Set<Long> rolIds) {
+        List<Rol> roles = rolRepository.findAllById(rolIds);
+        if (roles.size() != rolIds.size()) {
+            Set<Long> encontrados = roles.stream().map(Rol::getId).collect(Collectors.toSet());
+            Set<Long> faltantes = new HashSet<>(rolIds);
+            faltantes.removeAll(encontrados);
+            throw new RecursoNoEncontradoException("Roles no encontrados: " + faltantes);
+        }
+        return roles;
     }
 }
