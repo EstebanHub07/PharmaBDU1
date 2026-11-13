@@ -100,6 +100,10 @@ public class AuthServiceImpl implements AuthService {
         if (passwordEncoder.matches(request.getPasswordNueva(), usuario.getPassword())) {
             throw new ReglaNegocioException("La nueva contraseña debe ser distinta de la actual");
         }
+        // BCrypt solo considera los primeros 72 bytes: se rechaza lo que se truncaría.
+        if (request.getPasswordNueva().getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new ReglaNegocioException("La contraseña no puede superar 72 bytes");
+        }
 
         usuario.setPassword(passwordEncoder.encode(request.getPasswordNueva()));
         log.info("Contraseña actualizada para usuario={}", usuario.getUsername());
@@ -109,20 +113,5 @@ public class AuthServiceImpl implements AuthService {
         return usuarioRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Usuario no encontrado: " + username));
-    }
-    @Transactional
-    public void cambiarPassword(String username, CambioPasswordRequestDTO request) {
-        Usuario usuario = buscar(username);
-
-        if (!passwordEncoder.matches(request.getPasswordActual(), usuario.getPassword())) {
-            throw new ReglaNegocioException("La contraseña actual es incorrecta");
-        }
-
-        if (request.getPasswordNueva().getBytes(StandardCharsets.UTF_8).length > 72) {
-            throw new ReglaNegocioException("La contraseña no puede superar 72 bytes");
-        }
-
-        usuario.setPassword(passwordEncoder.encode(request.getPasswordNueva()));
-        usuarioRepository.save(usuario);
     }
 }
