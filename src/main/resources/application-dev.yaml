@@ -9,7 +9,7 @@ spring:
     database-platform: org.hibernate.dialect.OracleDialect
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false   # el SQL sale por el logger org.hibernate.SQL, con requestId
 
     properties:
       hibernate:
@@ -25,3 +25,9 @@ app:
   jwt:
     secret: w9Z6dP/dzykNH/uiI3Z/KGjBlP0H4Ji+Tuq4fm2cTNuLD4jWafu1gBL74V2SJEvy
     expiracion-minutos: 60
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %-5level [%X{requestId}] %logger{36} - %msg%n"

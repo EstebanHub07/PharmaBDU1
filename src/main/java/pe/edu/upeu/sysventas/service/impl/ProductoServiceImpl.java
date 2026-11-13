@@ -3,6 +3,8 @@ package pe.edu.upeu.sysventas.service.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +34,7 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "productos", allEntries = true)
     public ProductoResponseDTO create(ProductoRequestDTO t) {
         String nombre = t.getNombre().trim();
         if (productoRepository.existsByNombreIgnoreCase(nombre)){
@@ -55,6 +58,7 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "productos", allEntries = true)
     public ProductoResponseDTO update(Long aLong, ProductoRequestDTO t) {
         Producto producto = productoRepository.findById(aLong).orElseThrow(() ->
                 new RecursoNoEncontradoException(
@@ -76,7 +80,8 @@ public class ProductoServiceImpl implements ProductoService {
 
     }
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "productos", key = "'id-' + #aLong")
     public ProductoResponseDTO read (Long aLong){
         Producto producto = productoRepository.findById(aLong)
                 .orElseThrow(()->
@@ -89,6 +94,7 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "productos", allEntries = true)
     public void delete (Long aLong){
         Producto producto = productoRepository.findById(aLong).orElseThrow(()->
                 new RecursoNoEncontradoException(
@@ -100,6 +106,7 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "productos", key = "'todas'")
     public Iterable<ProductoResponseDTO> readAll () {
         return productoRepository.findAll()
                 .stream()
@@ -109,6 +116,7 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "productos", key = "#pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
     public Page<ProductoResponseDTO> readPage(Pageable pageable) {
         return productoRepository.findAll(pageable).map(this::convertirResponse);
     }

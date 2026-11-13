@@ -143,50 +143,48 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     @Transactional
     public UsuarioResponseDTO asignarRoles(
-            Long usuarioId, AsignarRolesRequestDTO request, String usernameActual) {
-        Usuario usuario = buscarUsuario(usuarioId);
-        List<Rol> roles = obtenerRoles(request.getRolIds());
+            Long id,
+            AsignarRolesRequestDTO request,
+            String usernameSolicitante) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Usuario no encontrado con id: " + id));
 
-        boolean seQuitaAdmin = usuario.getUsername().equalsIgnoreCase(usernameActual)
-                && usuario.getRoles().stream().anyMatch(rol -> "ADMIN".equals(rol.getNombre()))
-                && roles.stream().noneMatch(rol -> "ADMIN".equals(rol.getNombre()));
-        if (seQuitaAdmin) {
-            throw new ReglaNegocioException("Un administrador no puede quitarse a sí mismo el rol ADMIN");
+        List<Rol> roles = rolRepository.findAllById(request.getRolIds());
+        if (roles.size() != request.getRolIds().size()) {
+            Set<Long> encontrados = roles.stream().map(Rol::getId).collect(Collectors.toSet());
+            Set<Long> faltantes = new HashSet<>(request.getRolIds());
+            faltantes.removeAll(encontrados);
+            throw new RecursoNoEncontradoException("Roles no encontrados: " + faltantes);
         }
 
         usuario.setRoles(new HashSet<>(roles));
-        log.info("Roles actualizados para usuario={}", usuario.getUsername());
-        return usuarioMapper.toUsuarioResponse(usuario);
+        Usuario guardado = usuarioRepository.save(usuario);
+        log.info("Usuario={} actualizó roles de usuario={} a {}",
+                usernameSolicitante, guardado.getUsername(), usuarioMapper.nombresRoles(roles));
+
+        return usuarioMapper.toUsuarioResponse(guardado);
     }
 
     @Override
     @Transactional
     public UsuarioResponseDTO cambiarEstado(
-            Long usuarioId, CambiarEstadoRequestDTO request, String usernameActual) {
-        Usuario usuario = buscarUsuario(usuarioId);
-        if (!request.getEstado() && usuario.getUsername().equalsIgnoreCase(usernameActual)) {
+            Long id,
+            CambiarEstadoRequestDTO request,
+            String usernameSolicitante) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Usuario no encontrado con id: " + id));
+
+        if (!request.getEstado() && usuario.getUsername().equalsIgnoreCase(usernameSolicitante)) {
             throw new ReglaNegocioException("Un administrador no puede desactivarse a sí mismo");
         }
 
         usuario.setEstado(request.getEstado());
-        log.info("Estado actualizado para usuario={} estado={}", usuario.getUsername(), request.getEstado());
-        return usuarioMapper.toUsuarioResponse(usuario);
-    }
+        Usuario guardado = usuarioRepository.save(usuario);
+        log.info("Usuario={} cambió estado de usuario={} a {}",
+                usernameSolicitante, guardado.getUsername(), guardado.getEstado());
 
-    private Usuario buscarUsuario(Long usuarioId) {
-        return usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RecursoNoEncontradoException(
-                        "Usuario no encontrado con id: " + usuarioId));
-    }
-
-    private List<Rol> obtenerRoles(Set<Long> rolIds) {
-        List<Rol> roles = rolRepository.findAllById(rolIds);
-        if (roles.size() != rolIds.size()) {
-            Set<Long> encontrados = roles.stream().map(Rol::getId).collect(Collectors.toSet());
-            Set<Long> faltantes = new HashSet<>(rolIds);
-            faltantes.removeAll(encontrados);
-            throw new RecursoNoEncontradoException("Roles no encontrados: " + faltantes);
-        }
-        return roles;
+        return usuarioMapper.toUsuarioResponse(guardado);
     }
 }

@@ -25,7 +25,7 @@ public class CorsConfig {
                 List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
         );
         configuracion.setAllowedHeaders(List.of("*"));
-        configuracion.setExposedHeaders(List.of("Location"));
+        configuracion.setExposedHeaders(List.of("Location", RequestIdFilter.CABECERA));
         configuracion.setAllowCredentials(true);
         configuracion.setMaxAge(3600L);
 

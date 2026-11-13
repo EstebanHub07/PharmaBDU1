@@ -18,7 +18,7 @@ public interface UsuarioService {
 
     List<RolResponseDTO> listarRoles();
 
-    UsuarioResponseDTO asignarRoles(Long usuarioId, AsignarRolesRequestDTO request, String usernameActual);
+    UsuarioResponseDTO asignarRoles(Long id, AsignarRolesRequestDTO request, String usernameSolicitante);
 
-    UsuarioResponseDTO cambiarEstado(Long usuarioId, CambiarEstadoRequestDTO request, String usernameActual);
+    UsuarioResponseDTO cambiarEstado(Long id, CambiarEstadoRequestDTO request, String usernameSolicitante);
 }
