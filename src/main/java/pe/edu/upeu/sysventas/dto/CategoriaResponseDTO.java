@@ -3,6 +3,7 @@ package pe.edu.upeu.sysventas.dto;
 
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
@@ -10,7 +11,8 @@ import java.time.LocalDateTime;
 @Data
 @Setter
 @Getter
-public class CategoriaResponseDTO {
+public class CategoriaResponseDTO implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Long id;
     private String nombre;
     private String descripcion;

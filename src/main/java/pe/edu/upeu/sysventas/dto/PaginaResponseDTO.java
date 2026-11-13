@@ -1,5 +1,6 @@
 package pe.edu.upeu.sysventas.dto;
 
+import java.io.Serializable;
 import java.util.List;
 
 public record PaginaResponseDTO<T>(
@@ -9,5 +10,5 @@ public record PaginaResponseDTO<T>(
         long totalElementos,
         int totalPaginas,
         boolean ultima
-) {
+) implements Serializable {
 }
