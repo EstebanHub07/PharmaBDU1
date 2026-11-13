@@ -6,8 +6,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pe.edu.upeu.sysventas.dto.auth.CambioPasswordRequestDTO;
 import pe.edu.upeu.sysventas.dto.auth.LoginRequestDTO;
 import pe.edu.upeu.sysventas.dto.auth.LoginResponseDTO;
 import pe.edu.upeu.sysventas.dto.auth.UsuarioResponseDTO;
@@ -18,6 +20,8 @@ import pe.edu.upeu.sysventas.repository.UsuarioRepository;
 import pe.edu.upeu.sysventas.security.JwtService;
 import pe.edu.upeu.sysventas.security.PermisosPorRol;
 import pe.edu.upeu.sysventas.service.service.AuthService;
+import java.nio.charset.StandardCharsets;
+import pe.edu.upeu.sysventas.exception.ReglaNegocioException;
 
 import java.util.List;
 
@@ -31,16 +35,18 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthServiceImpl(
             AuthenticationManager authenticationManager,
             JwtService jwtService,
             UsuarioRepository usuarioRepository,
-            UsuarioMapper usuarioMapper) {
+            UsuarioMapper usuarioMapper, PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.usuarioRepository = usuarioRepository;
         this.usuarioMapper = usuarioMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -85,5 +91,20 @@ public class AuthServiceImpl implements AuthService {
         return usuarioRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Usuario no encontrado: " + username));
+    }
+    @Transactional
+    public void cambiarPassword(String username, CambioPasswordRequestDTO request) {
+        Usuario usuario = buscar(username);
+
+        if (!passwordEncoder.matches(request.getPasswordActual(), usuario.getPassword())) {
+            throw new ReglaNegocioException("La contraseña actual es incorrecta");
+        }
+
+        if (request.getPasswordNueva().getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new ReglaNegocioException("La contraseña no puede superar 72 bytes");
+        }
+
+        usuario.setPassword(passwordEncoder.encode(request.getPasswordNueva()));
+        usuarioRepository.save(usuario);
     }
 }

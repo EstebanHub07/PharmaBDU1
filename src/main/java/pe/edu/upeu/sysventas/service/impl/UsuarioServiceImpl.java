@@ -9,6 +9,8 @@ import pe.edu.upeu.sysventas.dto.auth.EmpleadoResponseDTO;
 import pe.edu.upeu.sysventas.dto.auth.RolResponseDTO;
 import pe.edu.upeu.sysventas.dto.auth.UsuarioRequestDTO;
 import pe.edu.upeu.sysventas.dto.auth.UsuarioResponseDTO;
+import pe.edu.upeu.sysventas.dto.auth.AsignarRolesRequestDTO;
+import pe.edu.upeu.sysventas.dto.auth.CambiarEstadoRequestDTO;
 import pe.edu.upeu.sysventas.model.Empleado;
 import pe.edu.upeu.sysventas.model.Rol;
 import pe.edu.upeu.sysventas.model.Usuario;
@@ -136,5 +138,53 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .stream()
                 .map(usuarioMapper::toRolResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public UsuarioResponseDTO asignarRoles(
+            Long id,
+            AsignarRolesRequestDTO request,
+            String usernameSolicitante) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Usuario no encontrado con id: " + id));
+
+        List<Rol> roles = rolRepository.findAllById(request.getRolIds());
+        if (roles.size() != request.getRolIds().size()) {
+            Set<Long> encontrados = roles.stream().map(Rol::getId).collect(Collectors.toSet());
+            Set<Long> faltantes = new HashSet<>(request.getRolIds());
+            faltantes.removeAll(encontrados);
+            throw new RecursoNoEncontradoException("Roles no encontrados: " + faltantes);
+        }
+
+        usuario.setRoles(new HashSet<>(roles));
+        Usuario guardado = usuarioRepository.save(usuario);
+        log.info("Usuario={} actualizó roles de usuario={} a {}",
+                usernameSolicitante, guardado.getUsername(), usuarioMapper.nombresRoles(roles));
+
+        return usuarioMapper.toUsuarioResponse(guardado);
+    }
+
+    @Override
+    @Transactional
+    public UsuarioResponseDTO cambiarEstado(
+            Long id,
+            CambiarEstadoRequestDTO request,
+            String usernameSolicitante) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "Usuario no encontrado con id: " + id));
+
+        if (!request.getEstado() && usuario.getUsername().equalsIgnoreCase(usernameSolicitante)) {
+            throw new ReglaNegocioException("Un administrador no puede desactivarse a sí mismo");
+        }
+
+        usuario.setEstado(request.getEstado());
+        Usuario guardado = usuarioRepository.save(usuario);
+        log.info("Usuario={} cambió estado de usuario={} a {}",
+                usernameSolicitante, guardado.getUsername(), guardado.getEstado());
+
+        return usuarioMapper.toUsuarioResponse(guardado);
     }
 }
