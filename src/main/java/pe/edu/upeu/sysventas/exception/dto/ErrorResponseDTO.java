@@ -18,4 +18,6 @@ public class ErrorResponseDTO {
     private String message;
     private String path;
     private Map<String, String> validationErrors;
+    /** Identificador de la petición (X-Request-Id) para que soporte la ubique en el log. */
+    private String requestId;
 }
