@@ -38,6 +38,8 @@ public class SecurityConfig {
     private static final String[] RUTAS_PUBLICAS = {
             "/api/v1/auth/login",
             "/api/health",
+            "/actuator/health",
+            "/actuator/health/**",
             "/swagger-ui.html",
             "/swagger-ui/**",
             "/v3/api-docs/**",
@@ -66,6 +68,8 @@ public class SecurityConfig {
                         // Publicas
                         .requestMatchers(RUTAS_PUBLICAS).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/actuator/**")
+                        .hasAuthority(USUARIOS_ADMINISTRAR.name())
 
                         // Catalogo: todos leen; solo ADMIN y ALMACENERO escriben
                         .requestMatchers(HttpMethod.GET,
