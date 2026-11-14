@@ -7,25 +7,12 @@ import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.cache.interceptor.SimpleCacheErrorHandler;
-import org.springframework.boot.cache.autoconfigure.RedisCacheManagerBuilderCustomizer;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableCaching
 public class CacheConfig implements CachingConfigurer {
     private static final Logger log = LoggerFactory.getLogger(CacheConfig.class);
-
-    /**
-     * Las invalidaciones (@CacheEvict) y los guardados se aplican recién cuando
-     * la transacción confirma. Sin esto, una venta podía limpiar la caché antes
-     * del commit y una lectura concurrente de otro local volvía a guardar el
-     * stock anterior durante los 10 minutos del TTL.
-     */
-    @Bean
-    public RedisCacheManagerBuilderCustomizer cacheTransaccional() {
-        return builder -> builder.transactionAware();
-    }
 
     @Override
     public CacheErrorHandler errorHandler() {
