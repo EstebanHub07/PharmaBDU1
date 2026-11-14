@@ -59,8 +59,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ReglaNegocioException.class)
     public ResponseEntity<ErrorResponseDTO> handleBusinessRule(
             ReglaNegocioException ex, HttpServletRequest request) {
-        log.warn("Regla de negocio rechazada en {} {}: {}", request.getMethod(),
-                request.getRequestURI(), ex.getMessage());
         return responder(HttpStatus.CONFLICT, "Conflict", ex.getMessage(), request, null);
     }
 
