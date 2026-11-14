@@ -1,17 +1,12 @@
 package pe.edu.upeu.sysventas.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -31,8 +26,6 @@ import java.util.Map;
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponseDTO> handleAuthentication(
@@ -81,49 +74,6 @@ public class GlobalExceptionHandler {
                         + ex.getName() + "'", request, null);
     }
 
-    /* JSON mal formado o tipos incompatibles en el cuerpo - HTTP 400 */
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponseDTO> handleNotReadable(
-            HttpMessageNotReadableException ex, HttpServletRequest request) {
-        return responder(HttpStatus.BAD_REQUEST, "Bad Request",
-                "El cuerpo de la petición no es válido", request, null);
-    }
-
-    /* Clave foránea, por ejemplo eliminar una categoría que tiene productos - HTTP 409 */
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponseDTO> handleDataIntegrity(
-            DataIntegrityViolationException ex, HttpServletRequest request) {
-        log.warn("Violación de integridad en {}: {}", request.getRequestURI(),
-                ex.getMostSpecificCause().getMessage());
-        return responder(HttpStatus.CONFLICT, "Conflict",
-                "La operación no es posible porque el registro tiene datos relacionados",
-                request, null);
-    }
-
-    /*
-     * Cualquier otro error. Las excepciones de Spring que ya traen su código
-     * (ResponseStatusException de la paginación, 404 de recurso, 405, parámetro
-     * faltante...) conservan ese código; sin este manejador irían a /error,
-     * fuera de RequestIdFilter, y perderían el requestId. El resto es un 500
-     * que no expone detalles internos.
-     */
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDTO> handleUnexpected(
-            Exception ex, HttpServletRequest request) {
-        if (ex instanceof ErrorResponse er) {
-            HttpStatusCode codigo = er.getStatusCode();
-            String mensaje = er.getBody().getDetail() != null
-                    ? er.getBody().getDetail()
-                    : ex.getMessage();
-            return responder(codigo, razon(codigo), mensaje, request, null);
-        }
-        log.error("Error no controlado en {} {}", request.getMethod(),
-                request.getRequestURI(), ex);
-        return responder(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error",
-                "Ocurrió un error inesperado. Comunique el código de seguimiento a soporte.",
-                request, null);
-    }
-
     private ResponseEntity<ErrorResponseDTO> responder(
             HttpStatusCode estado, String error, String mensaje,
             HttpServletRequest request, Map<String, String> validationErrors) {
@@ -132,10 +82,5 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(), validationErrors,
                 MDC.get(RequestIdFilter.CLAVE_MDC));
         return ResponseEntity.status(estado).body(cuerpo);
-    }
-
-    private static String razon(HttpStatusCode codigo) {
-        HttpStatus estado = HttpStatus.resolve(codigo.value());
-        return estado != null ? estado.getReasonPhrase() : "Error";
     }
 }
