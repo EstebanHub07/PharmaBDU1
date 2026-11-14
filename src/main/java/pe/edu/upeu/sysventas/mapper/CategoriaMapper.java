@@ -17,7 +17,9 @@ public class CategoriaMapper {
                 categoria.getDescripcion(),
                 categoria.getEstado(),
                 categoria.getFechaCreacion(),
-                categoria.getFechaModificacion()
+                categoria.getFechaModificacion(),
+                categoria.getCreadoPor(),
+                categoria.getModificadoPor()
         );
     }
 }

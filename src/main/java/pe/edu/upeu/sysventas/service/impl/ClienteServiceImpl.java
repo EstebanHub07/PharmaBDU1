@@ -34,7 +34,7 @@ public class ClienteServiceImpl
 
         log.info(
                 "Registrando cliente con DNI={}",
-                request.getDni()
+                enmascararDni(request.getDni())
         );
 
         String dni = request.getDni().trim();
@@ -215,7 +215,9 @@ public class ClienteServiceImpl
                 cliente.getDireccion(),
                 cliente.getEstado(),
                 cliente.getFechaCreacion(),
-                cliente.getFechaModificacion()
+                cliente.getFechaModificacion(),
+                cliente.getCreadoPor(),
+                cliente.getModificadoPor()
         );
     }
 
@@ -226,5 +228,15 @@ public class ClienteServiceImpl
         }
 
         return valor.trim();
+    }
+
+    /** El DNI es un dato personal: en el log solo quedan los dos últimos dígitos. */
+    private static String enmascararDni(String dni) {
+        if (dni == null || dni.isBlank()) {
+            return "-";
+        }
+        String limpio = dni.trim();
+        int visibles = Math.min(2, limpio.length());
+        return "*".repeat(limpio.length() - visibles) + limpio.substring(limpio.length() - visibles);
     }
 }

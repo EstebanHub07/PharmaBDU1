@@ -2,7 +2,10 @@ package pe.edu.upeu.sysventas.service.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.math.BigDecimal;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import pe.edu.upeu.sysventas.auditoria.EventoAuditoria;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,10 +29,13 @@ public class ProductoServiceImpl implements ProductoService {
 
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
+    private final ApplicationEventPublisher eventos;
 
-    public ProductoServiceImpl(ProductoRepository productoRepository, CategoriaRepository categoriaRepository) {
+    public ProductoServiceImpl(ProductoRepository productoRepository, CategoriaRepository categoriaRepository,
+                               ApplicationEventPublisher eventos) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
+        this.eventos = eventos;
     }
 
     @Override
@@ -69,6 +75,7 @@ public class ProductoServiceImpl implements ProductoService {
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Categoría no encontrada con id: " + t.getCategoriaId()
                 ));
+        BigDecimal precioAnterior = producto.getPrecio();
         producto.setNombre(t.getNombre());
         producto.setDescripcion(t.getDescripcion());
         producto.setEstado(t.getEstado());
@@ -76,6 +83,10 @@ public class ProductoServiceImpl implements ProductoService {
         producto.setStock(t.getStock());
         producto.setCategoria(categoria);
         Producto prodActualizada = productoRepository.save(producto);
+        if (precioAnterior.compareTo(producto.getPrecio()) != 0) {
+            eventos.publishEvent(EventoAuditoria.de("PRECIO_MODIFICADO", "Producto",
+                    producto.getId(), precioAnterior + " -> " + producto.getPrecio()));
+        }
         return convertirResponse(prodActualizada);
 
     }
@@ -102,6 +113,8 @@ public class ProductoServiceImpl implements ProductoService {
                 )
         );
         productoRepository.delete(producto);
+        eventos.publishEvent(EventoAuditoria.de("PRODUCTO_ELIMINADO", "Producto",
+                producto.getId(), producto.getNombre()));
     }
 
     @Override
@@ -132,7 +145,9 @@ public class ProductoServiceImpl implements ProductoService {
                 producto.getCategoria().getNombre(),
                 producto.getEstado(),
                 producto.getFechaCreacion(),
-                producto.getFechaModificacion()
+                producto.getFechaModificacion(),
+                producto.getCreadoPor(),
+                producto.getModificadoPor()
         );
     }
 }

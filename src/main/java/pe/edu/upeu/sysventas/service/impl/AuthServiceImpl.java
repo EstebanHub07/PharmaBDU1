@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,8 @@ import pe.edu.upeu.sysventas.repository.UsuarioRepository;
 import pe.edu.upeu.sysventas.security.JwtService;
 import pe.edu.upeu.sysventas.security.PermisosPorRol;
 import pe.edu.upeu.sysventas.service.service.AuthService;
+import pe.edu.upeu.sysventas.service.service.AuditoriaService;
+import pe.edu.upeu.sysventas.auditoria.EventoAuditoria;
 import java.nio.charset.StandardCharsets;
 import pe.edu.upeu.sysventas.exception.ReglaNegocioException;
 
@@ -38,17 +41,20 @@ public class AuthServiceImpl implements AuthService {
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AuditoriaService auditoriaService;
 
     public AuthServiceImpl(
             AuthenticationManager authenticationManager,
             JwtService jwtService,
             UsuarioRepository usuarioRepository,
-            UsuarioMapper usuarioMapper, PasswordEncoder passwordEncoder) {
+            UsuarioMapper usuarioMapper, PasswordEncoder passwordEncoder,
+            AuditoriaService auditoriaService) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.usuarioRepository = usuarioRepository;
         this.usuarioMapper = usuarioMapper;
         this.passwordEncoder = passwordEncoder;
+        this.auditoriaService = auditoriaService;
     }
 
     @Override
@@ -59,8 +65,15 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("Intento de inicio de sesión: usuario={}", username);
 
-        Authentication autenticacion = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, request.getPassword()));
+        Authentication autenticacion;
+        try {
+            autenticacion = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(username, request.getPassword()));
+        } catch (AuthenticationException ex) {
+            auditoriaService.registrar(
+                    EventoAuditoria.login("LOGIN_FALLIDO", username));
+            throw ex;
+        }
 
         UserDetails principal = (UserDetails) autenticacion.getPrincipal();
         Usuario usuario = buscar(principal.getUsername());
@@ -71,6 +84,7 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("Inicio de sesión correcto: usuario={} roles={}",
                 usuario.getUsername(), roles);
+        auditoriaService.registrar(EventoAuditoria.login("LOGIN_EXITOSO", username));
 
         return new LoginResponseDTO(
                 token,
@@ -100,6 +114,10 @@ public class AuthServiceImpl implements AuthService {
         if (passwordEncoder.matches(request.getPasswordNueva(), usuario.getPassword())) {
             throw new ReglaNegocioException("La nueva contraseña debe ser distinta de la actual");
         }
+        // BCrypt solo considera los primeros 72 bytes: se rechaza lo que se truncaría.
+        if (request.getPasswordNueva().getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new ReglaNegocioException("La contraseña no puede superar 72 bytes");
+        }
 
         usuario.setPassword(passwordEncoder.encode(request.getPasswordNueva()));
         log.info("Contraseña actualizada para usuario={}", usuario.getUsername());
@@ -109,20 +127,5 @@ public class AuthServiceImpl implements AuthService {
         return usuarioRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "Usuario no encontrado: " + username));
-    }
-    @Transactional
-    public void cambiarPassword(String username, CambioPasswordRequestDTO request) {
-        Usuario usuario = buscar(username);
-
-        if (!passwordEncoder.matches(request.getPasswordActual(), usuario.getPassword())) {
-            throw new ReglaNegocioException("La contraseña actual es incorrecta");
-        }
-
-        if (request.getPasswordNueva().getBytes(StandardCharsets.UTF_8).length > 72) {
-            throw new ReglaNegocioException("La contraseña no puede superar 72 bytes");
-        }
-
-        usuario.setPassword(passwordEncoder.encode(request.getPasswordNueva()));
-        usuarioRepository.save(usuario);
     }
 }
