@@ -8,19 +8,21 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import pe.edu.upeu.sysventas.dto.PaginaResponseDTO;
 import pe.edu.upeu.sysventas.dto.ProductoRequestDTO;
 import pe.edu.upeu.sysventas.dto.ProductoResponseDTO;
 import pe.edu.upeu.sysventas.exception.RecursoNoEncontradoException;
 import pe.edu.upeu.sysventas.service.service.ProductoService;
+import pe.edu.upeu.sysventas.util.PaginacionUtil;
+
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/productos")
 public class ProductoController {
+    private static final Set<String> CAMPOS_ORDENABLES = Set.of("id", "nombre", "precio", "stock");
+
     private final ProductoService productoService;
 
     public ProductoController(ProductoService productoService) {
@@ -32,24 +34,9 @@ public class ProductoController {
             @RequestParam(defaultValue = "10") int tamanio,
             @RequestParam(defaultValue = "nombre") String ordenarPor,
             @RequestParam(defaultValue = "asc") String direccion) {
-        if (pagina < 0 || tamanio < 1 || tamanio > 100) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Paginación inválida");
-        }
-
-        String campoOrden = switch (ordenarPor) {
-            case "id", "nombre", "precio", "stock" -> ordenarPor;
-            default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Campo de orden inválido");
-        };
-        Sort.Direction sentido;
-        try {
-            sentido = Sort.Direction.fromString(direccion);
-        } catch (IllegalArgumentException exception) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dirección de orden inválida");
-        }
-
         Page<ProductoResponseDTO> resultado = productoService.readPage(
-                PageRequest.of(pagina, tamanio, Sort.by(sentido, campoOrden))
-        );
+                PaginacionUtil.construir(pagina, tamanio, ordenarPor, direccion,
+                        CAMPOS_ORDENABLES, "nombre"));
         return ResponseEntity.ok(new PaginaResponseDTO<>(
                 resultado.getContent(),
                 resultado.getNumber(),
