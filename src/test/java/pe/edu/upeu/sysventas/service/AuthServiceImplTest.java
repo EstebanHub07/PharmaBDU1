@@ -1,5 +1,6 @@
 package pe.edu.upeu.sysventas.service;
 
+import pe.edu.upeu.sysventas.service.service.AuditoriaService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,6 +29,7 @@ class AuthServiceImplTest {
     @Mock private UsuarioRepository usuarioRepository;
     @Mock private UsuarioMapper usuarioMapper;
     @Mock private PasswordEncoder passwordEncoder;
+    @Mock private AuditoriaService auditoriaService;
     @InjectMocks private AuthServiceImpl authService;
 
     @Test

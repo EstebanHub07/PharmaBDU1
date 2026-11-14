@@ -1,4 +1,7 @@
 package pe.edu.upeu.sysventas.model;
+
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "ventas")
 @Getter
 @Setter
@@ -65,4 +69,8 @@ public class Venta {
         detalles.add(detalle);
         detalle.setVenta(this);
     }
+
+    @CreatedBy
+    @Column(name = "creado_por", length = 50, updatable = false)
+    private String creadoPor;
 }
