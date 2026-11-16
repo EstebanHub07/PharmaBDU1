@@ -1,0 +1,3 @@
+=== C-ttl-1m · TTL de 1 minuto (SPRING_CACHE_REDIS_TIMETOLIVE=1m) ===
+TTL categorias::todas recién creada -> 60 s
+EXISTS tras 65 s -> 0 (0 = expiró)

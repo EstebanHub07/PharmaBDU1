@@ -1,0 +1,2 @@
+=== D-traza-venta · grep "3c357fe0" C:\Users\itses\OneDrive\Documentos\UPEU - CICLO 4\LP 2\U1\sysventas\logs\pharma-backend.log ===
+2026-11-13 21:51:30,315 INFO  [3c357fe0] p.e.u.s.config.RequestIdFilter - POST /api/v1/ventas -> 201 (104 ms)

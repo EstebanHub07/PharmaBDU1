@@ -1,0 +1,7 @@
+=== C-matriz · Matriz de invalidación ===
+C-01 Crear una categoría                  esperado: Aparece | obtenido: Aparece | OK 
+C-02 Cambiar el nombre de una categoría   esperado: Nombre nuevo | obtenido: S13 renombrada 689768 | OK 
+C-03 Editar el precio de un producto      esperado: Precio nuevo (2.75) | obtenido: id: 2.75 | lista: 2.75 | OK 
+C-04 Registrar una venta (3 u.)           esperado: Stock descontado (47) | obtenido: 50 -> 47 | OK venta HTTP 201, X-Request-Id 3c357fe0
+C-05 Eliminar una categoría sin productos esperado: Ya no aparece | obtenido: Ya no aparece | OK DELETE HTTP 204
+C-06 Detener Redis y listar productos     esperado: Funciona; health DOWN | obtenido: productos HTTP 200 (552 ms) | health HTTP 503 DOWN | OK 

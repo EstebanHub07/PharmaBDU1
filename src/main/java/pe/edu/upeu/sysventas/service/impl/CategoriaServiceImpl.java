@@ -1,6 +1,8 @@
 package pe.edu.upeu.sysventas.service.impl;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import pe.edu.upeu.sysventas.auditoria.EventoAuditoria;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import pe.edu.upeu.sysventas.dto.CategoriaRequestDTO;
@@ -20,9 +22,12 @@ public class CategoriaServiceImpl implements CategoriaService {
     private static final Logger LOG = LoggerFactory.getLogger(CategoriaServiceImpl.class);
 
     private final CategoriaRepository categoriaRepository;
+    private final ApplicationEventPublisher eventos;
 
-    public CategoriaServiceImpl(CategoriaRepository categoriaRepository) {
+    public CategoriaServiceImpl(CategoriaRepository categoriaRepository,
+                                ApplicationEventPublisher eventos) {
         this.categoriaRepository = categoriaRepository;
+        this.eventos = eventos;
     }
 
     @Override
@@ -81,6 +86,8 @@ public class CategoriaServiceImpl implements CategoriaService {
                 )
         );
         categoriaRepository.delete(categoria);
+        eventos.publishEvent(EventoAuditoria.de("CATEGORIA_ELIMINADA", "Categoria",
+                categoria.getId(), categoria.getNombre()));
     }
 
     @Override

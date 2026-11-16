@@ -1,7 +1,9 @@
 package pe.edu.upeu.sysventas.service.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import pe.edu.upeu.sysventas.auditoria.EventoAuditoria;
 import org.springframework.transaction.annotation.Transactional;
 import pe.edu.upeu.sysventas.dto.ClienteRequestDTO;
 import pe.edu.upeu.sysventas.dto.ClienteResponseDTO;
@@ -22,9 +24,13 @@ public class ClienteServiceImpl
 
     private final ClienteRepository clienteRepository;
 
+    private final ApplicationEventPublisher eventos;
+
     public ClienteServiceImpl(
-            ClienteRepository clienteRepository) {
+            ClienteRepository clienteRepository,
+            ApplicationEventPublisher eventos) {
         this.clienteRepository = clienteRepository;
+        this.eventos = eventos;
     }
 
     @Override
@@ -81,6 +87,10 @@ public class ClienteServiceImpl
                 "Cliente registrado correctamente id={}",
                 guardado.getId()
         );
+        // En el detalle no va el DNI completo: es un dato personal.
+        eventos.publishEvent(EventoAuditoria.de("CLIENTE_REGISTRADO", "Cliente",
+                guardado.getId(),
+                guardado.getApellidos() + ", " + guardado.getNombres()));
 
         return convertirResponse(guardado);
     }

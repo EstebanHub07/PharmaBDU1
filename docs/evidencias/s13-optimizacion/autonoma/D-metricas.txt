@@ -1,0 +1,11 @@
+=== D-metricas · http.server.requests filtrado por uri:/api/v1/ventas ===
+HTTP 200
+COUNT: 1
+TOTAL_TIME: 0.103638
+MAX: 0.103638
+tag exception: none
+tag method: POST
+tag error: none
+tag outcome: SUCCESS
+tag status: 201
+GET /actuator/metrics con token de vendedor -> HTTP 403
