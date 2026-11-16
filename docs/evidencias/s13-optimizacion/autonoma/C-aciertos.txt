@@ -1,0 +1,3 @@
+=== C-aciertos · 20 GET por caché después de FLUSHALL (deltas de /actuator/metrics/cache.gets) ===
+categorias  hit=19 miss=1 tasa=95.0 % | 1.er GET (fallo) 20.7 ms | media 19 aciertos 15.1 ms
+productos   hit=19 miss=1 tasa=95.0 % | 1.er GET (fallo) 79.6 ms | media 19 aciertos 13.6 ms

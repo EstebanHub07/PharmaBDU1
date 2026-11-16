@@ -1,0 +1,5 @@
+=== D-health · /actuator/health con y sin token, Redis encendido y apagado ===
+Sin token, Redis encendido   -> HTTP 200 {"groups":["liveness","readiness"],"status":"UP"}
+Admin,     Redis encendido   -> HTTP 200 UP {"db":"UP","diskSpace":"UP","livenessState":"UP","ping":"UP","readinessState":"UP","redis":"UP","ssl":"UP"}
+Sin token, Redis apagado     -> HTTP 503 {"groups":["liveness","readiness"],"status":"DOWN"}
+Admin,     Redis apagado     -> HTTP 503 DOWN {"db":"UP","diskSpace":"UP","livenessState":"UP","ping":"UP","readinessState":"UP","redis":"DOWN","ssl":"UP"}

@@ -1,0 +1,13 @@
+=== D-error-requestid · requestId en una respuesta de error (categoría sin nombre) ===
+HTTP 400 | X-Request-Id: 429d9e42
+{
+  "timestamp": "2026-11-13T21:51:39.3452083",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Existen errores de validación",
+  "path": "/api/v1/categorias",
+  "validationErrors": {
+    "nombre": "El nombre debe tener entre 3 y 50 caracteres"
+  },
+  "requestId": "429d9e42"
+}

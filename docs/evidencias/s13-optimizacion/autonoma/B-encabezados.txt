@@ -1,0 +1,11 @@
+=== B-encabezados · Cache-Control obtenido desde Nginx (curl -I equivalente) ===
+/index.html          /index.html
+    HTTP 200 | Cache-Control: no-cache | Pragma: - | Expires: -
+main-*.js            /main-AJKTRUTR.js
+    HTTP 200 | Cache-Control: public, max-age=31536000, immutable | Pragma: - | Expires: -
+chunk de ventas      /chunk-CfnFxWzZ.js
+    HTTP 200 | Cache-Control: public, max-age=31536000, immutable | Pragma: - | Expires: -
+styles-*.css         /styles-DCHOEUS4.css
+    HTTP 200 | Cache-Control: public, max-age=31536000, immutable | Pragma: - | Expires: -
+/api/v1/categorias   /api/v1/categorias
+    HTTP 200 | Cache-Control: no-cache, no-store, max-age=0, must-revalidate | Pragma: no-cache | Expires: 0
